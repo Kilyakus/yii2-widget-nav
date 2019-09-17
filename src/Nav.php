@@ -6,6 +6,7 @@ use yii\base\InvalidConfigException;
 use yii\helpers\Url;
 use yii\helpers\Html;
 use yii\helpers\ArrayHelper;
+use yii\bootstrap\BootstrapAsset;
 
 /*
     For example:
@@ -111,7 +112,8 @@ class Nav extends \yii\bootstrap\Nav {
     public function run()
     {
         NavAsset::register($this->getView());
-        parent::init();
+        BootstrapAsset::register($this->getView());
+        return $this->renderItems();
     }
 
     /**
