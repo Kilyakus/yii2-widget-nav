@@ -1,7 +1,7 @@
 <?php
 namespace kilyakus\nav;
 
-class ButtonAsset extends \kilyakus\widgets\AssetBundle
+class NavAsset extends \kilyakus\widgets\AssetBundle
 {
     public function init()
     {

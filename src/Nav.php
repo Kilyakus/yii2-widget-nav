@@ -1,5 +1,5 @@
 <?php
-namespace kilyakus\nav\Nav;
+namespace kilyakus\nav;
 
 use Yii;
 use yii\base\InvalidConfigException;
@@ -105,6 +105,12 @@ class Nav extends \yii\bootstrap\Nav {
     {
         Html::addCssClass($this->options, $this->navbar);
         Html::addCssClass($this->options, $this->position);
+        parent::init();
+    }
+
+    public function run()
+    {
+        NavAsset::register($this->getView());
         parent::init();
     }
 
