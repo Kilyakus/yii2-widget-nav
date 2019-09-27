@@ -36,9 +36,8 @@ use yii\bootstrap\BootstrapAsset;
 
 */
 
-class Nav extends \yii\bootstrap\Nav
-{
-    public $support = false;
+class Nav extends \yii\bootstrap\Nav {
+
     /**
      * Positions
      */
