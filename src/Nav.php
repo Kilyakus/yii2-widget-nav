@@ -230,7 +230,7 @@ class Nav extends \yii\bootstrap\Nav
 			return Html::a($label, 'javascript://', $linkOptions);
 		}
 
-		return Html::a($label, Url::toRoute(ArrayHelper::getValue($item, 'url', '#')), $linkOptions);
+		return Html::a($label, ArrayHelper::getValue($item, 'url', '#'), $linkOptions);
 	}
 
 	/**
