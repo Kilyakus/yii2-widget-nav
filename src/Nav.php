@@ -9,280 +9,277 @@ use yii\helpers\ArrayHelper;
 use yii\bootstrap\BootstrapAsset;
 
 /*
-    For example:
+	For example:
 
-    echo Nav::widget([
-        'items' => [
-            [
-                'icon' => 'fa fa-warning',
-                'badge' => Badge::widget(['label' => 'New', 'round' => false]),
-                'label' => 'Home',
-                'url' => ['site/index'],
-                'linkOptions' => [...],
-            ],
-            [
-                'label' => 'Dropdown',
-                'items' => [
-                     ['label' => 'Level 1 - Dropdown A', 'url' => '#'],
-                     '<li class="divider"></li>',
-                     '<li class="dropdown-header">Dropdown Header</li>',
-                     ['label' => 'Level 1 - Dropdown B', 'url' => '#'],
-                ],
-            ],
-        ],
-    ]);
+	echo Nav::widget([
+		'items' => [
+			[
+				'icon' => 'fa fa-warning',
+				'badge' => Badge::widget(['label' => 'New', 'round' => false]),
+				'label' => 'Home',
+				'url' => ['site/index'],
+				'linkOptions' => [...],
+			],
+			[
+				'label' => 'Dropdown',
+				'items' => [
+					 ['label' => 'Level 1 - Dropdown A', 'url' => '#'],
+					 '<li class="divider"></li>',
+					 '<li class="dropdown-header">Dropdown Header</li>',
+					 ['label' => 'Level 1 - Dropdown B', 'url' => '#'],
+				],
+			],
+		],
+	]);
 
-    Note: Multilevel dropdowns beyond Level 1 are not supported in Bootstrap 3.
+	Note: Multilevel dropdowns beyond Level 1 are not supported in Bootstrap 3.
 
 */
 
-class Nav extends \yii\bootstrap\Nav {
+class Nav extends \yii\bootstrap\Nav
+{
+	const POS_DEFAULT = '';
+	const POS_LEFT = 'pull-left';
+	const POS_RIGHT = 'pull-right';
 
-    /**
-     * Positions
-     */
-    const POS_DEFAULT = '';
-    const POS_LEFT = 'pull-left';
-    const POS_RIGHT = 'pull-right';
+	const TYPE_DEFAULT = '';
+	const TYPE_NOTIFICATION = 'notification';
+	const TYPE_INBOX = 'inbox';
+	const TYPE_TASKS = 'tasks';
+	const TYPE_USER = 'user';
 
-    /**
-     * Types
-     */
-    const TYPE_DEFAULT = '';
-    const TYPE_NOTIFICATION = 'notification';
-    const TYPE_INBOX = 'inbox';
-    const TYPE_TASKS = 'tasks';
-    const TYPE_USER = 'user';
+	const NAVBAR_NONE = '';
+	const NAVBAR_DEFAULT = 'kt-nav';
 
-    /**
-     * Navbars
-     */
-    const NAVBAR_NONE = '';
-    const NAVBAR_DEFAULT = 'kt-nav';
+	const ITEM_DIVIDER = 'divider';
 
-    /**
-     * Items
-     */
-    const ITEM_DIVIDER = 'divider';
+	public $items = [];
 
-    /**
-     * @var array list of items in the nav widget. Each array element represents a single
-     * menu item which can be either a string or an array with the following structure:
-     *
-     * - label: string, required, the nav item label.
-     * - icon: string, optional, the nav item icon.
-     * - badge: array, optional
-     * - url: optional, the item's URL. Defaults to "#".
-     * - visible: boolean, optional, whether this menu item is visible. Defaults to true.
-     * - linkOptions: array, optional, the HTML attributes of the item's link.
-     * - options: array, optional, the HTML attributes of the item container (LI).
-     * - active: boolean, optional, whether the item should be on active state or not.
-     * - items: array|string, optional, the configuration array for creating a [[Dropdown]] widget,
-     *   or a string representing the dropdown menu. Note that Bootstrap does not support sub-dropdown menus.
-     *
-     * If a menu item is a string, it will be rendered directly without HTML encoding.
-     */
-    public $items = [];
+	public $position = self::POS_DEFAULT;
 
-    /**
-     * @var string the nav position
-     */
-    public $position = self::POS_DEFAULT;
+	public $dropdownType = self::TYPE_DEFAULT;
 
-    /**
-     * @var string dropdownType
-     */
-    public $dropdownType = self::TYPE_DEFAULT;
+	public $navbar = self::NAVBAR_DEFAULT;
 
-    /**
-     * @var string navbar holder
-     */
-    public $navbar = self::NAVBAR_DEFAULT;
+	/**
+	 * Initializes the widget.
+	 */
+	public function init()
+	{
+		Html::addCssClass($this->options, $this->navbar);
+		Html::addCssClass($this->options, $this->position);
+		parent::init();
+	}
 
-    /**
-     * Initializes the widget.
-     */
-    public function init()
-    {
-        Html::addCssClass($this->options, $this->navbar);
-        Html::addCssClass($this->options, $this->position);
-        parent::init();
-    }
+	public function run()
+	{
+		NavAsset::register($this->getView());
+		BootstrapAsset::register($this->getView());
+		return $this->renderItems();
+	}
 
-    public function run()
-    {
-        NavAsset::register($this->getView());
-        BootstrapAsset::register($this->getView());
-        return $this->renderItems();
-    }
+	/**
+	 * Renders a widget's item.
+	 * @param string|array $item the item to render.
+	 * @return string the rendering result.
+	 * @throws InvalidConfigException
+	 */
+	public function renderItem($item)
+	{
+		if (is_string($item)) {
+			return $item;
+		}
 
-    /**
-     * Renders a widget's item.
-     * @param string|array $item the item to render.
-     * @return string the rendering result.
-     * @throws InvalidConfigException
-     */
-    public function renderItem($item)
-    {
-        if (is_string($item))
-        {
-            return $item;
-        }
+		if (array_key_exists(self::ITEM_DIVIDER, $item))
+		{
+			return Html::tag('li', '', ['class' => self::ITEM_DIVIDER]);
+		}
 
-        if (array_key_exists(self::ITEM_DIVIDER, $item))
-        {
-            return Html::tag('li', '', ['class' => self::ITEM_DIVIDER]);
-        }
+		if (!isset($item['label']) && !isset($item['icon'])) {
+			throw new InvalidConfigException("The 'label' option is required.");
+		}
+		$encodeLabel = isset($item['encode']) ? $item['encode'] : $this->encodeLabels;
+		$label = $encodeLabel ? Html::encode($item['label']) : $item['label'];
+		$options = ArrayHelper::getValue($item, 'options', []);
+		$items = ArrayHelper::getValue($item, 'items');
+		$url = ArrayHelper::getValue($item, 'url', '#');
+		$linkOptions = ArrayHelper::getValue($item, 'linkOptions', []);
 
-        $items = ArrayHelper::getValue($item, 'items');
-        
-        if ($items === null)
-        {
-            return parent::renderItem($item);
-        }
+		if (isset($item['active'])) {
+			$active = ArrayHelper::remove($item, 'active', false);
+		} else {
+			$active = $this->isItemActive($item);
+		}
 
-        if (!isset($item['label']) && !isset($item['icon']))
-        {
-            throw new InvalidConfigException("The 'label' option is required.");
-        }
-        
-        $dropdownType = ArrayHelper::getValue($item, 'dropdownType', self::TYPE_DEFAULT);
-        $options = ArrayHelper::getValue($item, 'options', []);
+		if (isset($items)) {
+			$linkOptions['data-toggle'] = 'dropdown';
+			Html::addCssClass($options, ['widget' => 'dropdown']);
+			Html::addCssClass($linkOptions, ['widget' => 'dropdown-toggle']);
+			if ($this->dropDownCaret !== '') {
+				$label .= ' ' . $this->dropDownCaret;
+			}
+			if (is_array($items)) {
+				$items = $this->isChildActive($items, $active);
+				$items = $this->renderDropdown($items, $item);
+			}
+		}
 
-        Html::addCssClass($options, 'dropdown');
+		if ($active) {
+			Html::addCssClass($options, 'active');
+		}
 
-        if ($dropdownType !== self::TYPE_DEFAULT)
-        {
-            if ($dropdownType !== self::TYPE_USER)
-            {
-                Html::addCssClass($options, 'dropdown-extended');
-            }
+		return Html::tag('li', sprintf('%s%s', $this->_getLinkTag($item), $this->_getDropdownTag($item)), $options);
 
-            Html::addCssClass($options, 'dropdown-'.$dropdownType);
+		// if (is_string($item))
+		// {
+		//	 return $item;
+		// }
 
-            // yii2-template-engine - задумка сделать смену дизайна и возможность настроить связь между всеми виджетами
-            // if (Engine::HEADER_DROPDOWN_DARK === Engine::getComponent()->headerDropdown)
-            // {
-            //     Html::addCssClass($options, 'dropdown-dark');
-            // }
-        }
+		// if (array_key_exists(self::ITEM_DIVIDER, $item))
+		// {
+		//	 return Html::tag('li', '', ['class' => self::ITEM_DIVIDER]);
+		// }
 
-        if (isset($item['active']))
-        {
-            $active = ArrayHelper::remove($item, 'active', false);
-        }
-        else
-        {
-            $active = $this->isItemActive($item);
-        }
+		// $items = ArrayHelper::getValue($item, 'items');
+		
+		// if ($items === null)
+		// {
+		//	 return parent::renderItem($item);
+		// }
 
-        if ($active)
-        {
-            Html::addCssClass($options, 'active');
-        }
-        
-        return Html::tag('li', sprintf('%s%s', $this->_getLinkTag($item), $this->_getDropdownTag($item)), $options);
-    }
+		// if (!isset($item['label']) && !isset($item['icon']))
+		// {
+		//	 throw new InvalidConfigException("The 'label' option is required.");
+		// }
+		
+		// $dropdownType = ArrayHelper::getValue($item, 'dropdownType', self::TYPE_DEFAULT);
+		// $options = ArrayHelper::getValue($item, 'options', []);
 
-    /**
-     * Retrieves link tag
-     * @param array $item given item
-     * @return string link
-     */
-    private function _getLinkTag($item)
-    {
-        $dropdownType = ArrayHelper::getValue($item, 'dropdownType', self::TYPE_DEFAULT);
+		// Html::addCssClass($options, 'dropdown');
 
-        if ($dropdownType !== self::TYPE_DEFAULT)
-        {
-            $label = $item['label'];
-        }
-        else
-        {
-            $label = $this->encodeLabels ? Html::encode($item['label']) : $item['label'];
-        }
+		// if ($dropdownType !== self::TYPE_DEFAULT)
+		// {
+		//	 if ($dropdownType !== self::TYPE_USER)
+		//	 {
+		//		 Html::addCssClass($options, 'dropdown-extended');
+		//	 }
 
-        $icon = ArrayHelper::getValue($item, 'icon', null);
+		//	 Html::addCssClass($options, 'dropdown-'.$dropdownType);
 
-        if ($icon)
-        {
-            if ($dropdownType === self::TYPE_USER)
-            {
-                $label .= Html::tag('i', '', ['class' => $icon]);
-            }
-            else
-            {
-                $label = Html::tag('i', '', ['alt' =>$label, 'class' => $icon]);
-            }
-        }
+		//	 // yii2-template-engine - задумка сделать смену дизайна и возможность настроить связь между всеми виджетами
+		//	 // if (Engine::HEADER_DROPDOWN_DARK === Engine::getComponent()->headerDropdown)
+		//	 // {
+		//	 //	 Html::addCssClass($options, 'dropdown-dark');
+		//	 // }
+		// }
 
-        $label .= ArrayHelper::getValue($item, 'badge', '');
+		// if (isset($item['active']))
+		// {
+		//	 $active = ArrayHelper::remove($item, 'active', false);
+		// }
+		// else
+		// {
+		//	 $active = $this->isItemActive($item);
+		// }
 
-        $linkOptions = ArrayHelper::getValue($item, 'linkOptions', []);
+		// if ($active)
+		// {
+		//	 Html::addCssClass($options, 'active');
+		// }
+		
+		// return Html::tag('li', sprintf('%s%s', $this->_getLinkTag($item), $this->_getDropdownTag($item)), $options);
+	}
 
-        $linkOptions['data-toggle'] = 'dropdown';
-        $linkOptions['data-hover'] = 'dropdown';
-        $linkOptions['data-close-others'] = 'true';
+	/**
+	 * Retrieves link tag
+	 * @param array $item given item
+	 * @return string link
+	 */
+	private function _getLinkTag($item)
+	{
+		$dropdownType = ArrayHelper::getValue($item, 'dropdownType', self::TYPE_DEFAULT);
 
-        Html::addCssClass($linkOptions, 'dropdown-toggle');
+		$label = $this->encodeLabels ? Html::encode($item['label']) : $item['label'];
 
-        $url = ArrayHelper::getValue($item, 'url', false);
+		$label = Html::tag('span', $label, ['class' => 'kt-nav__link-text']);
 
-        if (!$url)
-        {
-            return Html::a($label, 'javascript:;', $linkOptions);
-        }
+		$icon = ArrayHelper::getValue($item, 'icon', null);
 
-        return Html::a($label, Url::toRoute(ArrayHelper::getValue($item, 'url', '#')), $linkOptions);
-    }
+		if ($icon)
+		{
+			$label = Html::tag('span', '', ['class' => 'kt-nav__link-icon ' . $icon]) . ' ' . $label;
+		}
 
-    /**
-     * Retrieves items tag
-     * @param array $item given parent item
-     * @return Dropdown widget
-     */
-    private function _getDropdownTag($item)
-    {
-        $dropdownType = ArrayHelper::getValue($item, 'dropdownType', self::TYPE_DEFAULT);
+		$label .= ArrayHelper::getValue($item, 'badge', '');
 
-        $items = ArrayHelper::getValue($item, 'items', null);
+		$linkOptions = ArrayHelper::getValue($item, 'linkOptions', []);
 
-        if ($items !== null && is_array($items))
-        {
-            if ($dropdownType === self::TYPE_DEFAULT || $dropdownType === self::TYPE_USER)
-            {
-                $options = ['class' => 'dropdown-menu-default'];
-            }
-            else
-            {
-                $options = ['class' => sprintf('%s %s', 'dropdown-menu-default extended', $dropdownType)];
-            }
+		if(isset($item['items'])){
 
-            $items = Dropdown::widget([
-                    'title' => ArrayHelper::getValue($item, 'title', ''),
-                    'more' => ArrayHelper::getValue($item, 'more', []),
-                    'scroller' => ArrayHelper::getValue($item, 'scroller', []),
-                    'items' => $items,
-                    'encodeLabels' => $this->encodeLabels,
-                    'clientOptions' => false,
-                    'options' => $options,
-            ]);
-        }
+			$linkOptions['data-toggle'] = 'dropdown';
+			$linkOptions['data-hover'] = 'dropdown';
+			$linkOptions['data-close-others'] = 'true';
 
-        return $items;
-    }
+			Html::addCssClass($linkOptions, 'dropdown-toggle');
+		}
 
-    /**
-     * Renders user item.
-     * @param $label string User label
-     * @param $photo string User photo url
-     * @return string the rendering result
-     */
-    public static function userItem($label, $photo)
-    {
-        $lines = [];
-        $lines[] = Html::tag('span', $label, ['class' => 'username username-hide-on-mobile']);
-        $lines[] = Html::img($photo, ['alt' => $label, 'class' => 'img-circle']);
-        return implode("\n", $lines);
-    }
+		$url = ArrayHelper::getValue($item, 'url', false);
+
+		if (!$url)
+		{
+			return Html::a($label, 'javascript://', $linkOptions);
+		}
+
+		return Html::a($label, Url::toRoute(ArrayHelper::getValue($item, 'url', '#')), $linkOptions);
+	}
+
+	/**
+	 * Retrieves items tag
+	 * @param array $item given parent item
+	 * @return Dropdown widget
+	 */
+	private function _getDropdownTag($item)
+	{
+		$dropdownType = ArrayHelper::getValue($item, 'dropdownType', self::TYPE_DEFAULT);
+
+		$items = ArrayHelper::getValue($item, 'items', null);
+
+		if ($items !== null && is_array($items))
+		{
+			if ($dropdownType === self::TYPE_DEFAULT || $dropdownType === self::TYPE_USER)
+			{
+				$options = ['class' => 'dropdown-menu-default'];
+			}
+			else
+			{
+				$options = ['class' => sprintf('%s %s', 'dropdown-menu-default extended', $dropdownType)];
+			}
+
+			$items = \kilyakus\web\widgets\Dropdown::widget([
+					'title' => ArrayHelper::getValue($item, 'title', ''),
+					'more' => ArrayHelper::getValue($item, 'more', []),
+					'scroller' => ArrayHelper::getValue($item, 'scroller', []),
+					'items' => $items,
+					'encodeLabels' => $this->encodeLabels,
+					'clientOptions' => false,
+					'options' => $options,
+			]);
+		}
+
+		return $items;
+	}
+
+	/**
+	 * Renders user item.
+	 * @param $label string User label
+	 * @param $photo string User photo url
+	 * @return string the rendering result
+	 */
+	public static function userItem($label, $photo)
+	{
+		$lines = [];
+		$lines[] = Html::tag('span', $label, ['class' => 'username username-hide-on-mobile']);
+		$lines[] = Html::img($photo, ['alt' => $label, 'class' => 'img-circle']);
+		return implode("\n", $lines);
+	}
 }
