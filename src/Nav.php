@@ -53,6 +53,8 @@ class Nav extends \yii\bootstrap\Nav
 
 	const ITEM_DIVIDER = 'divider';
 
+	public $encodeLabels = false;
+
 	public $items = [];
 
 	public $position = self::POS_DEFAULT;
@@ -61,9 +63,6 @@ class Nav extends \yii\bootstrap\Nav
 
 	public $navbar = self::NAVBAR_DEFAULT;
 
-	/**
-	 * Initializes the widget.
-	 */
 	public function init()
 	{
 		Html::addCssClass($this->options, $this->navbar);
@@ -78,12 +77,6 @@ class Nav extends \yii\bootstrap\Nav
 		return $this->renderItems();
 	}
 
-	/**
-	 * Renders a widget's item.
-	 * @param string|array $item the item to render.
-	 * @return string the rendering result.
-	 * @throws InvalidConfigException
-	 */
 	public function renderItem($item)
 	{
 		if (is_string($item)) {
@@ -129,72 +122,8 @@ class Nav extends \yii\bootstrap\Nav
 		}
 
 		return Html::tag('li', sprintf('%s%s', $this->_getLinkTag($item), $this->_getDropdownTag($item)), $options);
-
-		// if (is_string($item))
-		// {
-		//	 return $item;
-		// }
-
-		// if (array_key_exists(self::ITEM_DIVIDER, $item))
-		// {
-		//	 return Html::tag('li', '', ['class' => self::ITEM_DIVIDER]);
-		// }
-
-		// $items = ArrayHelper::getValue($item, 'items');
-		
-		// if ($items === null)
-		// {
-		//	 return parent::renderItem($item);
-		// }
-
-		// if (!isset($item['label']) && !isset($item['icon']))
-		// {
-		//	 throw new InvalidConfigException("The 'label' option is required.");
-		// }
-		
-		// $dropdownType = ArrayHelper::getValue($item, 'dropdownType', self::TYPE_DEFAULT);
-		// $options = ArrayHelper::getValue($item, 'options', []);
-
-		// Html::addCssClass($options, 'dropdown');
-
-		// if ($dropdownType !== self::TYPE_DEFAULT)
-		// {
-		//	 if ($dropdownType !== self::TYPE_USER)
-		//	 {
-		//		 Html::addCssClass($options, 'dropdown-extended');
-		//	 }
-
-		//	 Html::addCssClass($options, 'dropdown-'.$dropdownType);
-
-		//	 // yii2-template-engine - задумка сделать смену дизайна и возможность настроить связь между всеми виджетами
-		//	 // if (Engine::HEADER_DROPDOWN_DARK === Engine::getComponent()->headerDropdown)
-		//	 // {
-		//	 //	 Html::addCssClass($options, 'dropdown-dark');
-		//	 // }
-		// }
-
-		// if (isset($item['active']))
-		// {
-		//	 $active = ArrayHelper::remove($item, 'active', false);
-		// }
-		// else
-		// {
-		//	 $active = $this->isItemActive($item);
-		// }
-
-		// if ($active)
-		// {
-		//	 Html::addCssClass($options, 'active');
-		// }
-		
-		// return Html::tag('li', sprintf('%s%s', $this->_getLinkTag($item), $this->_getDropdownTag($item)), $options);
 	}
 
-	/**
-	 * Retrieves link tag
-	 * @param array $item given item
-	 * @return string link
-	 */
 	private function _getLinkTag($item)
 	{
 		$dropdownType = ArrayHelper::getValue($item, 'dropdownType', self::TYPE_DEFAULT);
@@ -227,17 +156,12 @@ class Nav extends \yii\bootstrap\Nav
 
 		if (!$url)
 		{
-			return Html::a($label, 'javascript://', $linkOptions);
+			return Html::tag('a', $label, $linkOptions);
 		}
 
 		return Html::a($label, ArrayHelper::getValue($item, 'url', '#'), $linkOptions);
 	}
 
-	/**
-	 * Retrieves items tag
-	 * @param array $item given parent item
-	 * @return Dropdown widget
-	 */
 	private function _getDropdownTag($item)
 	{
 		$dropdownType = ArrayHelper::getValue($item, 'dropdownType', self::TYPE_DEFAULT);
@@ -269,12 +193,6 @@ class Nav extends \yii\bootstrap\Nav
 		return $items;
 	}
 
-	/**
-	 * Renders user item.
-	 * @param $label string User label
-	 * @param $photo string User photo url
-	 * @return string the rendering result
-	 */
 	public static function userItem($label, $photo)
 	{
 		$lines = [];
